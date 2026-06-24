@@ -2,9 +2,18 @@
 
 The Animal GIFs platform is served by the Flask backend (`server.py`).
 
+## Public link (hosted)
+
+After deploying to a free host (see [DEPLOY.md](DEPLOY.md)), the platform is
+available at its public URL:
+
+### 👉 _Paste your Render URL here, e.g._ `https://animal-gifs-XXXX.onrender.com`
+
+> Update the line above with the real URL once the deploy finishes.
+
 ## Access link (local hosting)
 
-Once the server is running, open the platform here:
+To run it on your own machine instead, start the server and open:
 
 ### 👉 http://127.0.0.1:5000
 
