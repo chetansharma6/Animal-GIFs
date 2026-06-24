@@ -8,11 +8,12 @@ const Api = {
   /**
    * Fetch funny GIFs of the given animal from our backend.
    * @param {string} animal - a single-word animal name (already validated)
+   * @param {number} [offset=0] - how many results to skip (for paging)
    * @returns {Promise<Array<{id: string, url: string}>>}
    * @throws {Error} if the request fails or the backend returns an error
    */
-  async searchGifs(animal) {
-    const params = new URLSearchParams({ animal });
+  async searchGifs(animal, offset = 0) {
+    const params = new URLSearchParams({ animal, offset: String(offset) });
     const url = `${CONFIG.GIFS_ENDPOINT}?${params.toString()}`;
 
     let response;
