@@ -92,4 +92,8 @@ def gifs():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # Local development server. On a host (Render/Railway/etc.) the app is
+    # served by gunicorn instead, which imports `app` directly and binds the
+    # platform-provided PORT. We still honor PORT here for parity.
+    port = int(os.getenv("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port, debug=True)
