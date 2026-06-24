@@ -1,13 +1,15 @@
 /* storage.js — session persistence in the browser's Local Storage.
  *
  * A "session" tracks the current animal, which GIF IDs have already been
- * shown (to prevent repeats), and how many GIFs have been shown so far.
+ * shown (to prevent repeats), and the paging offset reached in the GIPHY
+ * results. There is no attempt limit — generation continues until the user
+ * starts a new animal.
  */
 
 const Storage = {
   /**
    * Load the saved session, or null if none exists / it is corrupt.
-   * @returns {{animal: string, shownIds: string[], count: number} | null}
+   * @returns {{animal: string, shownIds: string[], offset: number} | null}
    */
   load() {
     try {
@@ -21,7 +23,7 @@ const Storage = {
 
   /**
    * Save the session object to Local Storage.
-   * @param {{animal: string, shownIds: string[], count: number}} session
+   * @param {{animal: string, shownIds: string[], offset: number}} session
    */
   save(session) {
     try {
@@ -33,25 +35,14 @@ const Storage = {
 
   /**
    * Start a fresh session for the given animal. Re-using the same animal
-   * name is allowed — it simply resets shownIds and count.
+   * name is allowed — it simply resets shownIds and offset.
    * @param {string} animal
-   * @returns {{animal: string, shownIds: string[], count: number}}
+   * @returns {{animal: string, shownIds: string[], offset: number}}
    */
   start(animal) {
-    const session = { animal, shownIds: [], count: 0 };
+    const session = { animal, shownIds: [], offset: 0 };
     this.save(session);
     return session;
-  },
-
-  /**
-   * Record a newly shown GIF in the session and persist it.
-   * @param {{animal: string, shownIds: string[], count: number}} session
-   * @param {string} gifId
-   */
-  recordGif(session, gifId) {
-    session.shownIds.push(gifId);
-    session.count = session.shownIds.length;
-    this.save(session);
   },
 
   /** Clear the saved session entirely. */
