@@ -10,7 +10,7 @@
   <main class="container">
     <header>
       <h1>🐾 Animal GIFs</h1>
-      <p class="tagline">Type an animal. Get funny GIFs. Up to 5 per animal.</p>
+      <p class="tagline">Type an animal. Keep generating funny GIFs until you pick a new one.</p>
     </header>
 
     <!-- Input stage: user enters a single-word animal name -->
@@ -31,11 +31,10 @@
       </form>
     </section>
 
-    <!-- GIF stage: shows the GIF, count, and the Next button -->
+    <!-- GIF stage: shows the GIF and the Next button -->
     <section id="gif-stage" class="card hidden">
       <p class="session-info">
-        Funny <strong id="current-animal"></strong> —
-        GIF <span id="gif-count">0</span> / 5
+        Funny <strong id="current-animal"></strong> GIFs
       </p>
 
       <div id="gif-wrapper" class="gif-wrapper">
