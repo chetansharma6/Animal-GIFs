@@ -2,10 +2,11 @@
  *
  * Flow (per the README spec):
  *   1. User enters a single-word animal name -> validate.
- *   2. Fetch funny GIFs from GIPHY, show one.
+ *   2. Fetch funny GIFs (via our backend), show one.
  *   3. "Next GIF" shows a new, non-repeating GIF, up to 5 per animal.
  *   4. After the 5th GIF (or when GIPHY runs out), reset to the input stage.
  *   5. Re-entering the same animal starts a fresh 5-GIF session.
+ *   6. Reloading mid-session resumes where the user left off (Local Storage).
  */
 
 (function () {
@@ -32,7 +33,7 @@
   let pool = [];
 
   // --- Validation ---------------------------------------------------------
-  // Single word, letters only (allow internal hyphen, e.g. "anglerfish").
+  // Single word, letters only (allow internal hyphen, e.g. "angler-fish").
   const ANIMAL_PATTERN = /^[a-z]+(-[a-z]+)?$/;
 
   function validateAnimal(raw) {
@@ -68,25 +69,37 @@
     nextBtn.disabled = isLoading;
   }
 
-  // --- Core actions -------------------------------------------------------
+  // --- Pool helpers -------------------------------------------------------
+  function findInPool(id) {
+    return pool.find((gif) => gif.id === id) || null;
+  }
 
-  // Pick the next GIF from the pool that hasn't been shown this session.
+  // The next GIF in the pool that hasn't been shown this session.
   function nextUnseenGif() {
     return pool.find((gif) => !session.shownIds.includes(gif.id)) || null;
   }
 
-  function renderGif(gif) {
+  // --- Rendering ----------------------------------------------------------
+  // Display a GIF and count it toward the session total.
+  function renderNewGif(gif) {
     gifImage.src = gif.url;
     gifImage.alt = `Funny ${session.animal} GIF`;
     Storage.recordGif(session, gif.id);
     gifCountEl.textContent = String(session.count);
 
-    // If we've hit the per-session cap, stop offering more.
     if (session.count >= CONFIG.MAX_GIFS_PER_SESSION) {
       nextBtn.disabled = true;
       notice.textContent = "That's all 5! Pick a new animal to keep going.";
     }
   }
+
+  // Display an already-counted GIF (used when resuming, no count change).
+  function renderExistingGif(gif) {
+    gifImage.src = gif.url;
+    gifImage.alt = `Funny ${session.animal} GIF`;
+  }
+
+  // --- Core actions -------------------------------------------------------
 
   // Fetch the GIF pool for the current animal, then show the first GIF.
   async function startSessionFor(animal) {
@@ -107,8 +120,42 @@
         nextBtn.disabled = true;
         return;
       }
-      const gif = nextUnseenGif();
-      if (gif) renderGif(gif);
+      renderNewGif(nextUnseenGif());
+    } catch (err) {
+      notice.textContent = err.message || "Something went wrong. Try again.";
+      nextBtn.disabled = true;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Resume an interrupted session: re-fetch the pool and re-show the last
+  // GIF the user saw, without counting it again.
+  async function resumeSession(saved) {
+    session = saved;
+    pool = [];
+    currentAnimalEl.textContent = saved.animal;
+    gifCountEl.textContent = String(saved.count);
+    notice.textContent = "";
+    nextBtn.disabled = false;
+
+    showGifStage();
+    setLoading(true);
+    try {
+      pool = await Api.searchGifs(saved.animal);
+
+      const lastId = saved.shownIds[saved.shownIds.length - 1];
+      const last = lastId ? findInPool(lastId) : null;
+      if (last) renderExistingGif(last);
+
+      if (saved.count >= CONFIG.MAX_GIFS_PER_SESSION) {
+        nextBtn.disabled = true;
+        notice.textContent = "That's all 5! Pick a new animal to keep going.";
+      } else if (!nextUnseenGif()) {
+        nextBtn.disabled = true;
+        notice.textContent =
+          "No more new GIFs for this animal — please choose another animal.";
+      }
     } catch (err) {
       notice.textContent = err.message || "Something went wrong. Try again.";
       nextBtn.disabled = true;
@@ -128,7 +175,7 @@
       nextBtn.disabled = true;
       return;
     }
-    renderGif(gif);
+    renderNewGif(gif);
   }
 
   // --- Event listeners ----------------------------------------------------
@@ -157,43 +204,10 @@
   (function init() {
     const saved = Storage.load();
     if (saved && saved.animal && saved.count < CONFIG.MAX_GIFS_PER_SESSION) {
-      // Re-fetch the pool for the saved animal so refreshes keep working.
-      startSessionForResume(saved);
+      resumeSession(saved);
     } else {
       Storage.clear();
       showInputStage();
     }
   })();
-
-  // Resume helper: keep already-shown GIF history, refetch the pool.
-  async function startSessionForResume(saved) {
-    session = saved;
-    pool = [];
-    currentAnimalEl.textContent = saved.animal;
-    gifCountEl.textContent = String(saved.count);
-    notice.textContent = "";
-    nextBtn.disabled = false;
-
-    showGifStage();
-    setLoading(true);
-    try {
-      pool = await Api.searchGifs(saved.animal);
-      const gif = nextUnseenGif();
-      if (gif) {
-        // Show the next unseen GIF without double-counting: render handles
-        // recording. Roll back the count it would add beyond history.
-        gifImage.src = gif.url;
-        gifImage.alt = `Funny ${saved.animal} GIF`;
-      } else {
-        notice.textContent =
-          "No more new GIFs for this animal — please choose another animal.";
-        nextBtn.disabled = true;
-      }
-    } catch (err) {
-      notice.textContent = err.message || "Something went wrong. Try again.";
-      nextBtn.disabled = true;
-    } finally {
-      setLoading(false);
-    }
-  }
 })();
