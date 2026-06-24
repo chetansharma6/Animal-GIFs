@@ -23,9 +23,10 @@ python server.py
 ```
 
 Then visit the link above in your browser. The page lets you enter an animal
-name and view up to 5 funny GIFs per animal. Your session (current animal,
-GIFs already shown, and the count) is stored in the browser's **Local Storage**,
-so reloading the page resumes where you left off.
+name and keep generating funny GIFs for it (no limit) until you click
+**"New animal"**. Your session (current animal, GIFs already shown, and the
+paging offset) is stored in the browser's **Local Storage**, so reloading the
+page resumes the same animal.
 
 ## Notes
 
