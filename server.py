@@ -44,7 +44,9 @@ def index():
 def gifs():
     """Search GIPHY for funny GIFs of the requested animal.
 
-    Query param: animal=<single-word animal name>
+    Query params:
+        animal=<single-word animal name>
+        offset=<int>  how many results to skip (for paging through more GIFs)
     Returns: {"data": [{"id": "...", "url": "..."}, ...]}
     """
     if not GIPHY_API_KEY:
@@ -60,10 +62,18 @@ def gifs():
             400,
         )
 
+    # Paging offset. GIPHY caps offset at 4999, so clamp to stay valid.
+    try:
+        offset = max(0, int(request.args.get("offset", "0")))
+    except ValueError:
+        offset = 0
+    offset = min(offset, 4999)
+
     params = {
         "api_key": GIPHY_API_KEY,
         "q": f"{SEARCH_PREFIX} {animal}",
         "limit": FETCH_LIMIT,
+        "offset": offset,
         "rating": RATING,
         "lang": "en",
     }
