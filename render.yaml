@@ -1,0 +1,15 @@
+# Render deployment blueprint (https://render.com).
+# Deploys the Flask app as a free web service.
+#
+# GIPHY_API_KEY is intentionally NOT stored here (sync: false). Render will
+# prompt you for it in the dashboard, keeping the secret off GitHub.
+services:
+  - type: web
+    name: animal-gifs
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: GIPHY_API_KEY
+        sync: false
