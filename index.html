@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal GIFs — Funny GIFs for any animal</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>🐾 Animal GIFs</h1>
+      <p class="tagline">Type an animal. Get funny GIFs. Up to 5 per animal.</p>
+    </header>
+
+    <!-- Input stage: user enters a single-word animal name -->
+    <section id="input-stage" class="card">
+      <form id="animal-form" autocomplete="off">
+        <label for="animal-input">Enter an animal name (one word)</label>
+        <div class="input-row">
+          <input
+            id="animal-input"
+            type="text"
+            name="animal"
+            placeholder="e.g. dog"
+            aria-describedby="error-msg"
+          />
+          <button type="submit" id="start-btn">Go</button>
+        </div>
+        <p id="error-msg" class="error" role="alert" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- GIF stage: shows the GIF, count, and the Next button -->
+    <section id="gif-stage" class="card hidden">
+      <p class="session-info">
+        Funny <strong id="current-animal"></strong> —
+        GIF <span id="gif-count">0</span> / 5
+      </p>
+
+      <div id="gif-wrapper" class="gif-wrapper">
+        <img id="gif-image" alt="" />
+        <div id="loader" class="loader hidden">Loading…</div>
+      </div>
+
+      <p id="notice" class="notice" role="status" aria-live="polite"></p>
+
+      <div class="button-row">
+        <button id="next-btn" type="button">Next GIF</button>
+        <button id="reset-btn" type="button" class="secondary">New animal</button>
+      </div>
+    </section>
+
+    <footer>
+      <p>Powered by the GIPHY API. State kept in your browser's Local Storage.</p>
+    </footer>
+  </main>
+
+  <!-- Order matters: config -> storage -> api -> app -->
+  <script src="config.js"></script>
+  <script src="storage.js"></script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
