@@ -2,6 +2,8 @@
 
 Animal GIFs generates funny GIFs (graphics interchange formats) for any animal of your choice.
 
+> 🔗 **Access the platform:** see [PLATFORM.md](PLATFORM.md) for the link to open the running app.
+
 ## Overview
 
 A small web app where a user types in a single animal name and the site responds with a funny GIF of that animal. A button generates a new, different GIF for the same animal each time it's pressed — up to **5 GIFs per animal**. After the 5th GIF, the input resets and the user is prompted to enter a new animal name. Re-entering the same name is allowed and starts a fresh session with new GIFs.
