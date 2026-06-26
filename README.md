@@ -1,4 +1,4 @@
-# animal-gifs
+# Animal-GIFs
 
 Animal GIFs generates funny GIFs (graphics interchange formats) for any animal of your choice.
 
