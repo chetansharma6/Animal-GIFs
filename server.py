@@ -74,7 +74,7 @@ def gifs():
         )
 
     animal = (request.args.get("animal") or "").strip().lower()
-    if not ANIMAL_PATTERN.match(animal):
+    if len(animal) > 30 or not ANIMAL_PATTERN.match(animal):
         return (
             jsonify({"error": "Provide a valid one-word animal name."}),
             400,
@@ -128,4 +128,7 @@ if __name__ == "__main__":
     # served by gunicorn instead, which imports `app` directly and binds the
     # platform-provided PORT. We still honor PORT here for parity.
     port = int(os.getenv("PORT", "5000"))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    # Debug mode exposes the Werkzeug interactive debugger (arbitrary code
+    # execution). Keep it OFF unless FLASK_DEBUG=1 is explicitly set locally.
+    debug = os.getenv("FLASK_DEBUG", "0") == "1"
+    app.run(host="0.0.0.0", port=port, debug=debug)
