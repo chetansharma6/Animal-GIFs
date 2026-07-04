@@ -4,56 +4,106 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Animal GIFs — Funny GIFs for any animal</title>
+  <meta name="description" content="Type an animal and keep generating funny GIFs for it." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Decorative animated background blobs -->
+  <div class="bg" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
   <main class="container">
-    <header>
-      <h1>🐾 Animal GIFs</h1>
-      <p class="tagline">Type an animal. Keep generating funny GIFs until you pick a new one.</p>
+    <header class="site-header">
+      <h1 class="logo"><span class="logo-emoji">🐾</span> Animal <span class="logo-accent">GIFs</span></h1>
+      <p class="tagline">Type an animal and keep the funny GIFs coming — endlessly.</p>
     </header>
 
-    <!-- Input stage: user enters a single-word animal name -->
-    <section id="input-stage" class="card">
+    <!-- ============ INPUT STAGE ============ -->
+    <section id="input-stage" class="stage card">
       <form id="animal-form" autocomplete="off">
-        <label for="animal-input">Enter an animal name (one word)</label>
-        <div class="input-row">
+        <label for="animal-input" class="field-label">Which animal do you want to see?</label>
+
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">🔎</span>
           <input
             id="animal-input"
             type="text"
             name="animal"
-            placeholder="e.g. dog"
+            placeholder="e.g. dog, cat, panda…"
             aria-describedby="error-msg"
+            autofocus
           />
-          <button type="submit" id="start-btn">Go</button>
+          <button type="submit" id="start-btn" class="btn btn-primary">
+            Generate
+          </button>
         </div>
+
         <p id="error-msg" class="error" role="alert" aria-live="polite"></p>
       </form>
+
+      <div class="quick-picks">
+        <span class="quick-label">Popular:</span>
+        <div class="chips" id="quick-picks" role="group" aria-label="Popular animals"></div>
+      </div>
     </section>
 
-    <!-- GIF stage: shows the GIF and the Next button -->
-    <section id="gif-stage" class="card hidden">
-      <p class="session-info">
-        Funny <strong id="current-animal"></strong> GIFs
-      </p>
+    <!-- ============ GIF STAGE ============ -->
+    <section id="gif-stage" class="stage card hidden">
+      <div class="gif-topbar">
+        <div class="gif-title">
+          <span class="pill" id="current-animal"></span>
+          <span class="gif-title-text">funny GIFs</span>
+        </div>
+        <div class="counter" id="counter" title="GIFs viewed this session">0 viewed</div>
+      </div>
 
-      <div id="gif-wrapper" class="gif-wrapper">
+      <div class="gif-frame" id="gif-frame">
+        <div class="spinner hidden" id="loader" aria-label="Loading">
+          <span></span><span></span><span></span>
+        </div>
         <img id="gif-image" alt="" />
-        <div id="loader" class="loader hidden">Loading…</div>
+        <div class="frame-actions">
+          <button id="copy-btn" class="icon-btn" type="button" title="Copy GIF link">🔗</button>
+          <button id="open-btn" class="icon-btn" type="button" title="Open GIF in new tab">↗</button>
+        </div>
       </div>
 
       <p id="notice" class="notice" role="status" aria-live="polite"></p>
 
-      <div class="button-row">
-        <button id="next-btn" type="button">Next GIF</button>
-        <button id="reset-btn" type="button" class="secondary">New animal</button>
+      <div class="controls">
+        <button id="next-btn" class="btn btn-primary btn-lg" type="button">
+          Next GIF <span class="btn-arrow">→</span>
+        </button>
+        <button id="reset-btn" class="btn btn-ghost" type="button">↺ New animal</button>
       </div>
+
+      <div class="history hidden" id="history">
+        <div class="history-label">Recently viewed</div>
+        <div class="history-strip" id="history-strip"></div>
+      </div>
+
+      <p class="hint">
+        <kbd>Space</kbd> or <kbd>→</kbd> next · <kbd>Esc</kbd> new animal
+      </p>
     </section>
 
-    <footer>
-      <p>Powered by the GIPHY API. State kept in your browser's Local Storage.</p>
+    <footer class="site-footer">
+      <p>Powered by the GIPHY API · session saved in your browser</p>
     </footer>
   </main>
+
+  <!-- Toast for transient feedback (copy link, etc.) -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- Order matters: config -> storage -> api -> app -->
   <script src="config.js"></script>
