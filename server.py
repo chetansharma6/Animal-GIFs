@@ -100,7 +100,11 @@ def gifs():
         response = requests.get(GIPHY_SEARCH_URL, params=params, timeout=10)
         response.raise_for_status()
     except requests.RequestException as exc:
-        return jsonify({"error": f"GIPHY request failed: {exc}"}), 502
+        # Never echo the exception to the client: its message can include the
+        # full request URL, which contains the secret api_key. Log privately,
+        # return a generic message.
+        app.logger.warning("GIPHY request failed: %s", exc)
+        return jsonify({"error": "Could not reach the GIF service. Try again."}), 502
 
     payload = response.json()
     data = payload.get("data", []) if isinstance(payload, dict) else []
