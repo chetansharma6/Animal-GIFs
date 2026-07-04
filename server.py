@@ -58,6 +58,40 @@ def frontend_file(filename):
     return send_from_directory(BASE_DIR, filename)
 
 
+# Content-Security-Policy: the frontend only loads its own scripts/styles,
+# Google Fonts, and GIF images from GIPHY, and only calls back to /api (self).
+CSP = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' https://fonts.googleapis.com; "
+    "font-src https://fonts.gstatic.com; "
+    "img-src 'self' https://*.giphy.com https://giphy.com; "
+    "connect-src 'self'; "
+    "base-uri 'self'; "
+    "form-action 'self'; "
+    "object-src 'none'; "
+    "frame-ancestors 'none'"
+)
+
+
+@app.after_request
+def set_security_headers(response):
+    """Add defensive HTTP headers to every response."""
+    response.headers["Content-Security-Policy"] = CSP
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = (
+        "geolocation=(), microphone=(), camera=()"
+    )
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains"
+    )
+    # Don't advertise the exact server/framework version.
+    response.headers["Server"] = "animal-gifs"
+    return response
+
+
 @app.route("/api/gifs")
 def gifs():
     """Search GIPHY for funny GIFs of the requested animal.
