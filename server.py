@@ -18,6 +18,9 @@ import re
 import requests
 from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, request, send_from_directory
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()  # load GIPHY_API_KEY from .env
 
@@ -42,6 +45,25 @@ PUBLIC_FILES = frozenset(
 )
 
 app = Flask(__name__, static_folder=None)
+
+# Render terminates TLS and forwards the real client IP in X-Forwarded-For.
+# Trust exactly one proxy hop so rate limiting keys off the real client.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+# Per-client rate limiting to protect the GIPHY quota and the instance from
+# abuse. In-memory storage is fine for a single-process free-tier deployment.
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["120 per minute"],
+    storage_uri="memory://",
+)
+
+
+@app.errorhandler(429)
+def ratelimit_handler(_exc):
+    """Return rate-limit rejections as JSON so the frontend can show them."""
+    return jsonify({"error": "Too many requests — please slow down."}), 429
 
 
 @app.route("/")
@@ -93,6 +115,7 @@ def set_security_headers(response):
 
 
 @app.route("/api/gifs")
+@limiter.limit("40 per minute")
 def gifs():
     """Search GIPHY for funny GIFs of the requested animal.
 
