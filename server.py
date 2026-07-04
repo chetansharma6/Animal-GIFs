@@ -17,7 +17,7 @@ import re
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, abort, jsonify, request, send_from_directory
 
 load_dotenv()  # load GIPHY_API_KEY from .env
 
@@ -31,13 +31,31 @@ RATING = "g"
 # Single-word animal name: letters only, optional internal hyphen.
 ANIMAL_PATTERN = re.compile(r"^[a-z]+(-[a-z]+)?$")
 
-app = Flask(__name__, static_folder=".", static_url_path="")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Only these frontend files may be served over HTTP. Everything else in the
+# project directory — .env (the API key!), server.py, .git/, requirements.txt
+# — must NOT be reachable. We therefore disable Flask's automatic static route
+# (static_folder=None) and serve an explicit allowlist instead.
+PUBLIC_FILES = frozenset(
+    {"index.html", "styles.css", "app.js", "config.js", "storage.js", "api.js"}
+)
+
+app = Flask(__name__, static_folder=None)
 
 
 @app.route("/")
 def index():
     """Serve the frontend entry point."""
-    return send_from_directory(".", "index.html")
+    return send_from_directory(BASE_DIR, "index.html")
+
+
+@app.route("/<path:filename>")
+def frontend_file(filename):
+    """Serve only allowlisted frontend assets; 404 for anything else."""
+    if filename not in PUBLIC_FILES:
+        abort(404)
+    return send_from_directory(BASE_DIR, filename)
 
 
 @app.route("/api/gifs")
