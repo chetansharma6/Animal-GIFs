@@ -11,20 +11,14 @@ A small web app where a user types in a single animal name and the site responds
 ## Tech Stack
 
 - **Frontend:** HTML + CSS + JavaScript (no framework).
-- **Backend:** Python **Flask** — serves the frontend and proxies GIF searches so the GIPHY API key stays on the server.
+- **Backend:** Python **Flask** — serves the frontend and proxies GIF searches to GIPHY.
 - **GIF source:** [GIPHY](https://developers.giphy.com/) Search API — queried with a "funny {animal}" style search term.
 - **State / persistence:** browser **Local Storage** — tracks the current animal, GIFs already shown this session, and the GIF count.
 
-## Why a backend? (API key protection)
+## Architecture
 
-A pure HTML/CSS/JS site **cannot hide an API key** — anything the browser sends is visible to anyone via the network tab. To keep the key usable only by the administrator, the key lives **only on the server** in a gitignored `.env` file. The browser never sees it:
-
-```
-Browser  ──►  /api/gifs?animal=dog  ──►  Flask (adds secret key)  ──►  GIPHY
-         ◄──         GIF list        ◄──                           ◄──
-```
-
-The real `.env` is listed in `.gitignore` and is **never committed or pushed**. The repo only contains `.env.example` as a template.
+The browser talks only to the Flask backend, which handles the GIF search and
+returns a list of GIF URLs. The frontend never contacts GIPHY directly.
 
 ## Project Structure
 
@@ -32,14 +26,13 @@ The real `.env` is listed in `.gitignore` and is **never committed or pushed**. 
 |------|------|
 | `index.html` | Page structure (input stage + GIF stage) |
 | `styles.css` | Styling (dark theme, responsive) |
-| `config.js` | Frontend constants (endpoint, GIF cap, storage key) — **no API key** |
+| `config.js` | Frontend constants (endpoint, GIF cap, storage key) |
 | `storage.js` | Local Storage session management |
 | `api.js` | Calls the backend `/api/gifs` endpoint |
 | `app.js` | Validation, session logic, and UI wiring |
-| `server.py` | Flask backend: serves frontend + proxies GIPHY (holds the key) |
+| `server.py` | Flask backend: serves frontend + proxies GIPHY |
 | `requirements.txt` | Python dependencies |
-| `.env.example` | Template for the key file (copy to `.env`) |
-| `.env` | **Local, gitignored** — holds the real `GIPHY_API_KEY` |
+| `.env.example` | Configuration template (copy to `.env` for local setup) |
 
 ## Setup & Run
 
@@ -47,8 +40,7 @@ The real `.env` is listed in `.gitignore` and is **never committed or pushed**. 
 # 1. Install Python dependencies
 python -m pip install -r requirements.txt
 
-# 2. Create your key file from the template, then paste your GIPHY key
-#    (the administrator's key already lives in .env on the admin machine)
+# 2. Create your config from the template, then set your own GIPHY key
 cp .env.example .env        # edit .env and set GIPHY_API_KEY
 
 # 3. Start the server
@@ -125,4 +117,4 @@ python server.py
 
 ## Status
 
-Implemented — frontend + Flask backend in place, GIPHY key protected server-side.
+Implemented — frontend + Flask backend in place.

@@ -24,6 +24,7 @@
   const animalInput = document.getElementById("animal-input");
   const errorMsg = document.getElementById("error-msg");
   const quickPicks = document.getElementById("quick-picks");
+  const surpriseBtn = document.getElementById("surprise-btn");
 
   const currentAnimalEl = document.getElementById("current-animal");
   const counterEl = document.getElementById("counter");
@@ -35,8 +36,14 @@
   const resetBtn = document.getElementById("reset-btn");
   const copyBtn = document.getElementById("copy-btn");
   const openBtn = document.getElementById("open-btn");
+  const favBtn = document.getElementById("fav-btn");
+  const shareBtn = document.getElementById("share-btn");
   const historyEl = document.getElementById("history");
   const historyStrip = document.getElementById("history-strip");
+  const favoritesEl = document.getElementById("favorites");
+  const favGrid = document.getElementById("fav-grid");
+  const favCount = document.getElementById("fav-count");
+  const favClear = document.getElementById("fav-clear");
   const toast = document.getElementById("toast");
 
   // --- Config -------------------------------------------------------------
@@ -52,6 +59,14 @@
   ];
   const MAX_THUMBS = 20;
 
+  // A larger pool for the "Surprise me" button.
+  const SURPRISE_ANIMALS = [
+    "dog", "cat", "panda", "fox", "penguin", "sloth", "otter", "monkey",
+    "koala", "hedgehog", "raccoon", "capybara", "llama", "quokka", "corgi",
+    "duck", "goat", "hamster", "owl", "dolphin", "elephant", "tiger",
+    "kitten", "puppy", "parrot", "bunny", "seal", "chinchilla",
+  ];
+
   // --- In-memory state ----------------------------------------------------
   // session: persisted to Local Storage ({animal, shownIds, offset}).
   // pool: GIFs fetched so far. viewed: GIFs shown this run (for thumbnails).
@@ -59,6 +74,7 @@
   let pool = [];
   let viewed = [];
   let currentUrl = "";
+  let currentGif = null; // { id, url } of the GIF on screen right now
 
   // --- Validation ---------------------------------------------------------
   const ANIMAL_PATTERN = /^[a-z]+(-[a-z]+)?$/;
@@ -132,12 +148,14 @@
   }
 
   // --- Rendering ----------------------------------------------------------
-  // Swap the main image with a fade-in.
-  function displayImage(url) {
-    currentUrl = url;
+  // Swap the main image with a fade-in. Accepts a { id, url } GIF object.
+  function displayImage(gif) {
+    currentGif = { id: gif.id || null, url: gif.url };
+    currentUrl = gif.url;
     gifImage.classList.remove("loaded");
-    gifImage.src = url;
-    gifImage.alt = `Funny ${session.animal} GIF`;
+    gifImage.src = gif.url;
+    gifImage.alt = session ? `Funny ${session.animal} GIF` : "Saved GIF";
+    updateFavButton();
   }
 
   gifImage.addEventListener("load", () => gifImage.classList.add("loaded"));
@@ -162,7 +180,7 @@
         thumb.appendChild(img);
 
         thumb.addEventListener("click", () => {
-          displayImage(gif.url);
+          displayImage(gif);
           markActiveThumb();
         });
         historyStrip.appendChild(thumb);
@@ -180,7 +198,7 @@
 
   // Show a brand-new GIF (counts toward the session and history).
   function renderNewGif(gif) {
-    displayImage(gif.url);
+    displayImage(gif);
     session.shownIds.push(gif.id);
     Storage.save(session);
 
@@ -189,6 +207,106 @@
     updateCounter();
     renderThumbs();
     notice.textContent = "";
+  }
+
+  // --- Favorites ----------------------------------------------------------
+  // Reflect whether the on-screen GIF is saved.
+  function updateFavButton() {
+    const saved = !!(currentGif && currentGif.id && Favorites.has(currentGif.id));
+    favBtn.textContent = saved ? "♥" : "♡";
+    favBtn.classList.toggle("is-fav", saved);
+    favBtn.setAttribute("aria-pressed", String(saved));
+    favBtn.title = saved ? "Remove from favorites" : "Save to favorites";
+  }
+
+  function renderFavorites() {
+    const favs = Favorites.load();
+    favCount.textContent = String(favs.length);
+    favGrid.innerHTML = "";
+
+    // newest first
+    favs
+      .slice()
+      .reverse()
+      .forEach((fav) => {
+        const item = document.createElement("div");
+        item.className = "fav-item";
+        if (currentGif && fav.id === currentGif.id) item.classList.add("active");
+
+        const img = document.createElement("img");
+        img.src = fav.url;
+        img.alt = fav.animal ? `Saved ${fav.animal} GIF` : "Saved GIF";
+        img.loading = "lazy";
+        img.title = "View this GIF";
+        img.addEventListener("click", () => {
+          displayImage(fav);
+          markActiveThumb();
+          renderFavorites();
+        });
+
+        const remove = document.createElement("button");
+        remove.className = "fav-remove";
+        remove.type = "button";
+        remove.title = "Remove from favorites";
+        remove.setAttribute("aria-label", "Remove from favorites");
+        remove.textContent = "×";
+        remove.addEventListener("click", (event) => {
+          event.stopPropagation();
+          Favorites.remove(fav.id);
+          renderFavorites();
+          updateFavButton();
+        });
+
+        item.appendChild(img);
+        item.appendChild(remove);
+        favGrid.appendChild(item);
+      });
+
+    favoritesEl.classList.toggle("hidden", favs.length === 0);
+  }
+
+  function toggleFavorite() {
+    if (!currentGif || !currentGif.id) return;
+    if (Favorites.has(currentGif.id)) {
+      Favorites.remove(currentGif.id);
+      showToast("Removed from favorites");
+    } else {
+      Favorites.add({
+        id: currentGif.id,
+        url: currentGif.url,
+        animal: session ? session.animal : "",
+      });
+      showToast("★ Saved to favorites!");
+    }
+    updateFavButton();
+    renderFavorites();
+  }
+
+  // --- Share --------------------------------------------------------------
+  async function shareCurrent() {
+    if (!currentUrl) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Funny animal GIF", url: currentUrl });
+      } catch {
+        /* user dismissed the share sheet — nothing to do */
+      }
+      return;
+    }
+    // No native share: fall back to copying the link.
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      showToast("🔗 Link copied to share!");
+    } catch {
+      showToast("Couldn't share — try the copy button.");
+    }
+  }
+
+  // --- Surprise me --------------------------------------------------------
+  function surpriseMe() {
+    const pick =
+      SURPRISE_ANIMALS[Math.floor(Math.random() * SURPRISE_ANIMALS.length)];
+    startSessionFor(pick);
   }
 
   // --- Core actions -------------------------------------------------------
@@ -223,12 +341,15 @@
     pool = [];
     viewed = [];
     currentUrl = "";
+    currentGif = null;
     currentAnimalEl.textContent = animal;
     notice.textContent = "";
     gifImage.removeAttribute("src");
     gifImage.classList.remove("loaded");
     updateCounter();
     renderThumbs();
+    renderFavorites();
+    updateFavButton();
     showGifStage();
     await showNextGif();
   }
@@ -240,12 +361,15 @@
     pool = [];
     viewed = [];
     currentUrl = "";
+    currentGif = null;
     currentAnimalEl.textContent = session.animal;
     notice.textContent = "";
     gifImage.removeAttribute("src");
     gifImage.classList.remove("loaded");
     updateCounter();
     renderThumbs();
+    renderFavorites();
+    updateFavButton();
     showGifStage();
     await showNextGif();
   }
@@ -274,7 +398,19 @@
     startSessionFor(result.value);
   });
 
+  surpriseBtn.addEventListener("click", surpriseMe);
+
   nextBtn.addEventListener("click", showNextGif);
+
+  favBtn.addEventListener("click", toggleFavorite);
+  shareBtn.addEventListener("click", shareCurrent);
+
+  favClear.addEventListener("click", () => {
+    Favorites.clear();
+    renderFavorites();
+    updateFavButton();
+    showToast("Favorites cleared");
+  });
 
   resetBtn.addEventListener("click", () => {
     Storage.clear();
@@ -309,6 +445,8 @@
       if (!nextBtn.disabled) showNextGif();
     } else if (event.code === "Escape") {
       resetBtn.click();
+    } else if (event.code === "KeyF") {
+      toggleFavorite();
     }
   });
 

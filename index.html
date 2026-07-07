@@ -55,6 +55,10 @@
         <span class="quick-label">Popular:</span>
         <div class="chips" id="quick-picks" role="group" aria-label="Popular animals"></div>
       </div>
+
+      <button type="button" id="surprise-btn" class="btn btn-ghost surprise-btn">
+        🎲 Surprise me
+      </button>
     </section>
 
     <!-- ============ GIF STAGE ============ -->
@@ -73,6 +77,8 @@
         </div>
         <img id="gif-image" alt="" />
         <div class="frame-actions">
+          <button id="fav-btn" class="icon-btn" type="button" title="Save to favorites" aria-pressed="false">♡</button>
+          <button id="share-btn" class="icon-btn" type="button" title="Share GIF">📤</button>
           <button id="copy-btn" class="icon-btn" type="button" title="Copy GIF link">🔗</button>
           <button id="open-btn" class="icon-btn" type="button" title="Open GIF in new tab">↗</button>
         </div>
@@ -92,8 +98,16 @@
         <div class="history-strip" id="history-strip"></div>
       </div>
 
+      <div class="favorites hidden" id="favorites">
+        <div class="favorites-head">
+          <span class="history-label">★ Favorites (<span id="fav-count">0</span>)</span>
+          <button id="fav-clear" class="link-btn" type="button">Clear all</button>
+        </div>
+        <div class="fav-grid" id="fav-grid" role="group" aria-label="Saved GIFs"></div>
+      </div>
+
       <p class="hint">
-        <kbd>Space</kbd> or <kbd>→</kbd> next · <kbd>Esc</kbd> new animal
+        <kbd>Space</kbd> or <kbd>→</kbd> next · <kbd>F</kbd> favorite · <kbd>Esc</kbd> new animal
       </p>
     </section>
 

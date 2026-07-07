@@ -1,7 +1,6 @@
-/* api.js — talks to our own backend, which proxies GIPHY.
+/* api.js — talks to the backend that returns the GIF list.
  *
- * The GIPHY API key is never used here; it stays on the server. This file
- * just calls /api/gifs?animal=... and returns [{ id, url }, ...].
+ * Calls /api/gifs?animal=... and returns [{ id, url }, ...].
  */
 
 const Api = {

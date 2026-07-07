@@ -1,14 +1,12 @@
-/* config.js — app-wide configuration constants (frontend).
- *
- * NOTE: The GIPHY API key is NOT here. It lives only on the server (.env)
- * so it can never be read from the browser. The frontend talks to our own
- * backend endpoint instead.
- */
+/* config.js — app-wide configuration constants (frontend). */
 
 const CONFIG = {
-  // Our backend endpoint that proxies the GIPHY search (keeps the key hidden).
+  // Backend endpoint that returns the GIF list.
   GIFS_ENDPOINT: "/api/gifs",
 
-  // Local Storage key under which the session is persisted.
+  // Local Storage key under which the current session is persisted.
   STORAGE_KEY: "animalGifsSession",
+
+  // Local Storage key for saved (favorited) GIFs — persists across sessions.
+  FAVORITES_KEY: "animalGifsFavorites",
 };

@@ -371,6 +371,12 @@ body {
   border-color: var(--accent-3);
 }
 
+/* Surprise-me button */
+.surprise-btn {
+  margin-top: 1rem;
+  width: 100%;
+}
+
 /* ----------------------------- GIF stage -------------------------------- */
 .gif-topbar {
   display: flex;
@@ -474,6 +480,11 @@ body {
 .icon-btn:hover {
   transform: scale(1.1);
   background: rgba(124, 92, 255, 0.75);
+}
+
+.icon-btn.is-fav {
+  background: var(--grad-primary);
+  border-color: transparent;
 }
 
 /* Spinner */
@@ -583,6 +594,122 @@ body {
 
 .thumb.active {
   border-color: var(--accent);
+}
+
+/* Favorites gallery */
+.favorites {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1rem;
+}
+
+.favorites-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.favorites-head .history-label {
+  margin-bottom: 0;
+}
+
+.link-btn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.15rem 0.25rem;
+  transition: color 0.2s;
+}
+
+.link-btn:hover {
+  color: var(--accent);
+}
+
+.fav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 0.5rem;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-3) transparent;
+}
+
+.fav-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fav-grid::-webkit-scrollbar-thumb {
+  background: var(--accent-3);
+  border-radius: 3px;
+}
+
+.fav-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: rgba(0, 0, 0, 0.3);
+  transition: transform 0.12s var(--ease), border-color 0.2s;
+}
+
+.fav-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+
+.fav-item:hover {
+  transform: translateY(-3px) scale(1.04);
+}
+
+.fav-item.active {
+  border-color: var(--accent);
+}
+
+.fav-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  background: rgba(10, 10, 25, 0.78);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, transform 0.12s var(--ease);
+}
+
+.fav-item:hover .fav-remove,
+.fav-remove:focus-visible {
+  opacity: 1;
+}
+
+.fav-remove:hover {
+  background: var(--accent);
+  transform: scale(1.12);
+}
+
+/* Touch devices can't hover — always show the remove control. */
+@media (hover: none) {
+  .fav-remove {
+    opacity: 1;
+  }
 }
 
 /* Hint */

@@ -50,3 +50,64 @@ const Storage = {
     localStorage.removeItem(CONFIG.STORAGE_KEY);
   },
 };
+
+/* Favorites — GIFs the user has explicitly saved. Unlike a session, these
+ * persist across animals and across "New animal" resets, and are capped so
+ * Local Storage can't grow without bound.
+ */
+const FAV_LIMIT = 120;
+
+const Favorites = {
+  /** @returns {Array<{id: string, url: string, animal: string}>} */
+  load() {
+    try {
+      const raw = localStorage.getItem(CONFIG.FAVORITES_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (err) {
+      console.warn("Could not read favorites from Local Storage:", err);
+      return [];
+    }
+  },
+
+  _save(list) {
+    try {
+      localStorage.setItem(CONFIG.FAVORITES_KEY, JSON.stringify(list));
+    } catch (err) {
+      console.warn("Could not save favorites to Local Storage:", err);
+    }
+  },
+
+  /** @param {string} id @returns {boolean} */
+  has(id) {
+    return this.load().some((fav) => fav.id === id);
+  },
+
+  /** Add a GIF (no-op if already saved). Returns the updated list. */
+  add({ id, url, animal }) {
+    if (!id || !url) return this.load();
+    const list = this.load();
+    if (list.some((fav) => fav.id === id)) return list;
+    list.push({ id, url, animal: animal || "" });
+    // Keep only the most recent FAV_LIMIT entries.
+    if (list.length > FAV_LIMIT) list.splice(0, list.length - FAV_LIMIT);
+    this._save(list);
+    return list;
+  },
+
+  /** Remove a GIF by id. Returns the updated list. */
+  remove(id) {
+    const list = this.load().filter((fav) => fav.id !== id);
+    this._save(list);
+    return list;
+  },
+
+  /** Remove every saved GIF. */
+  clear() {
+    try {
+      localStorage.removeItem(CONFIG.FAVORITES_KEY);
+    } catch (err) {
+      console.warn("Could not clear favorites:", err);
+    }
+  },
+};
